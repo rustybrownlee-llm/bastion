@@ -1,6 +1,7 @@
 # Bastion Project Handoff
 
 **Created**: 2025-01-28
+**Last Updated**: 2025-01-28
 **Purpose**: Context for session continuity
 
 ---
@@ -47,27 +48,25 @@ This enables:
 - Single audit trail for all access decisions
 
 ### Hierarchical Roles
-Three levels: Platform roles (immutable) → Application roles (app-defined defaults) → Tenant custom roles (composable from app roles)
+Three levels: Platform roles (immutable) -> Application roles (app-defined defaults) -> Tenant custom roles (composable from app roles)
 
 Tenants can create roles like "acme:soc-analyst" that combines "signal-smith:analyst" + "vektera:reader".
+
+### Token Format Decision (Resolved)
+JWT selected for POC. Simpler, well-understood, tokens can be debugged at jwt.io. PASETO can be evaluated for production hardening later.
 
 ---
 
 ## Relationship to Other Projects
 
 ```
-┌─────────────────────────────────────────┐
-│              Bastion                     │
-│  (Identity, Auth, RBAC, Audit)          │
-└─────────────────┬───────────────────────┘
-                  │
-      ┌───────────┼───────────┐
-      │           │           │
-      ▼           ▼           ▼
-┌──────────┐ ┌──────────┐ ┌──────────┐
-│  Signal  │ │  Vektera │ │  Future  │
-│  Smith   │ │          │ │   Apps   │
-└──────────┘ └──────────┘ └──────────┘
+                    Bastion
+        (Identity, Auth, RBAC, Audit)
+                      |
+        +-------------+-------------+
+        |             |             |
+        v             v             v
+   Signal Smith    Vektera      Future Apps
 ```
 
 - **Signal Smith**: Security signal detection platform (separate repo, uses same tech stack)
@@ -78,21 +77,59 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 
 ---
 
+## Repository
+
+**GitHub**: https://github.com/rustybrownlee-llm/bastion
+**Local**: /Users/rustybrownlee/Development/rbac-zta-poc
+
+---
+
 ## Current State
 
 ### Completed
-- `CLAUDE.md` - Project guidelines with SOW workflow constraints
-- `docs/decisions/DD-001-bastion-architecture.md` - Comprehensive architecture decision document
-- `docs/sows/POC-001.0-basic-go-structure.md` - First SOW, awaiting approval
+
+| Item | Description |
+|------|-------------|
+| CLAUDE.md | Project guidelines with SOW workflow constraints |
+| DD-001 | Comprehensive architecture decision document |
+| POC-001.0 | Basic Go structure - **APPROVED AND IMPLEMENTED** |
+| SOW Agent | `.claude/agents/sow-implementation-agent.md` created |
+
+### POC-001.0 Implementation (Complete)
+- Go module at `github.com/rustybrownlee-llm/bastion/poc`
+- chi router with `/health` endpoint
+- Graceful shutdown on SIGINT/SIGTERM
+- All success criteria validated
 
 ### Awaiting Approval
-**POC-001.0**: Basic Go project structure
-- Module init, directory layout, health endpoint
-- Minimal foundation for subsequent SOWs
 
-### Next After POC-001.0
-- POC-002: Core authentication (user identity, sessions, tokens)
-- POC-003: Basic RBAC (roles, permissions, check endpoint)
+**POC-002.0**: Core Authentication (`docs/sows/POC-002.0-core-authentication.md`)
+- PostgreSQL database connection
+- User creation with bcrypt password hashing
+- Login endpoint returning JWT access + refresh tokens
+- Token refresh and logout endpoints
+- Session tracking with activity timestamps
+- Basic audit logging
+- **NOT YET COMMITTED** - file exists locally but not in git
+
+### SOW Implementation Agent
+
+A custom agent was created at `.claude/agents/sow-implementation-agent.md` for implementing approved SOWs. Use this agent to execute POC-002.0 after approval.
+
+The agent enforces:
+- No implementation without SOW approval
+- POC vs Production standards
+- Approved technology stack only
+- Validation and lessons learned documentation
+
+---
+
+## Next Steps
+
+1. **Review POC-002.0** at `docs/sows/POC-002.0-core-authentication.md`
+2. **Approve or request changes** to the SOW
+3. **Use SOW implementation agent** to execute the approved SOW
+4. After POC-002: Draft POC-003 (Basic RBAC)
 
 ---
 
@@ -108,25 +145,34 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 
 5. **Same stack as Signal Smith** - Go 1.24+, PostgreSQL, chi router, YAML config. No unapproved dependencies.
 
+6. **UI for testing** - User mentioned wanting a Bootstrap UI for testing later. This would be a separate SOW and decision document, not part of the core POC.
+
 ---
 
 ## Technical Notes
 
-### Token Format Decision (Open)
-DD-001 notes PASETO vs JWT as an open question. PASETO has better cryptographic defaults; JWT has broader tooling. Decision can be made during POC-002.
-
 ### Database
 PostgreSQL, same as Signal Smith. No ORM - use database/sql directly.
 
+### Dependencies Added (POC-001.0)
+- `github.com/go-chi/chi/v5 v5.2.4`
+
+### Dependencies for POC-002.0 (pending approval)
+- `github.com/golang-jwt/jwt/v5` - JWT tokens
+- `github.com/lib/pq` - PostgreSQL driver
+- `golang.org/x/crypto` - bcrypt
+- `gopkg.in/yaml.v3` - YAML config
+
 ### Naming
-"Bastion" is the working name. User is researching domains. The joke name "FUPA" (Fortress of Ultimate Power and Authority) should not appear in documentation.
+"Bastion" is the working name. User is researching domains.
 
 ---
 
 ## Session Continuity
 
 To continue this work:
-1. Review DD-001 for full architecture context
-2. Review POC-001.0 for immediate next step
-3. Get explicit approval before any implementation
-4. Follow CLAUDE.md guidelines strictly
+1. Read CLAUDE.md for project rules
+2. Read this HANDOFF.md for current state
+3. Review POC-002.0 SOW (not yet committed, exists locally)
+4. Get explicit approval before implementing
+5. Use the SOW implementation agent for execution
