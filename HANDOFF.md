@@ -93,7 +93,9 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 | CLAUDE.md | Project guidelines with SOW workflow constraints |
 | DD-001 | Comprehensive architecture decision document |
 | POC-001.0 | Basic Go structure - **APPROVED AND IMPLEMENTED** |
+| POC-002.0 | Core Authentication - **APPROVED AND IMPLEMENTED** |
 | SOW Agent | `.claude/agents/sow-implementation-agent.md` created |
+| Reference Docs | `docs/reference/` with API, schema, config, validation guides |
 
 ### POC-001.0 Implementation (Complete)
 - Go module at `github.com/rustybrownlee-llm/bastion/poc`
@@ -101,20 +103,19 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 - Graceful shutdown on SIGINT/SIGTERM
 - All success criteria validated
 
-### Awaiting Approval
-
-**POC-002.0**: Core Authentication (`docs/sows/POC-002.0-core-authentication.md`)
-- PostgreSQL database connection
+### POC-002.0 Implementation (Complete)
+- PostgreSQL database connection with lib/pq driver
 - User creation with bcrypt password hashing
 - Login endpoint returning JWT access + refresh tokens
 - Token refresh and logout endpoints
 - Session tracking with activity timestamps
-- Basic audit logging
-- **NOT YET COMMITTED** - file exists locally but not in git
+- Basic audit logging to database
+- Token validation middleware
+- All 8 success criteria ready for validation
 
 ### SOW Implementation Agent
 
-A custom agent was created at `.claude/agents/sow-implementation-agent.md` for implementing approved SOWs. Use this agent to execute POC-002.0 after approval.
+A custom agent was created at `.claude/agents/sow-implementation-agent.md` for implementing approved SOWs.
 
 The agent enforces:
 - No implementation without SOW approval
@@ -126,10 +127,9 @@ The agent enforces:
 
 ## Next Steps
 
-1. **Review POC-002.0** at `docs/sows/POC-002.0-core-authentication.md`
-2. **Approve or request changes** to the SOW
-3. **Use SOW implementation agent** to execute the approved SOW
-4. After POC-002: Draft POC-003 (Basic RBAC)
+1. **Validate POC-002.0** - Start PostgreSQL, apply migrations, run tests (see `docs/reference/validation.md`)
+2. **Draft POC-003** - Basic RBAC (roles, permissions, resource types)
+3. **Draft POC-004** - Service accounts and API keys
 
 ---
 
@@ -154,14 +154,15 @@ The agent enforces:
 ### Database
 PostgreSQL, same as Signal Smith. No ORM - use database/sql directly.
 
-### Dependencies Added (POC-001.0)
-- `github.com/go-chi/chi/v5 v5.2.4`
+### Dependencies
 
-### Dependencies for POC-002.0 (pending approval)
-- `github.com/golang-jwt/jwt/v5` - JWT tokens
-- `github.com/lib/pq` - PostgreSQL driver
-- `golang.org/x/crypto` - bcrypt
-- `gopkg.in/yaml.v3` - YAML config
+| Package | Version | Added In | Purpose |
+|---------|---------|----------|---------|
+| github.com/go-chi/chi/v5 | v5.2.4 | POC-001.0 | HTTP routing |
+| github.com/golang-jwt/jwt/v5 | v5.3.1 | POC-002.0 | JWT tokens |
+| github.com/lib/pq | v1.10.9 | POC-002.0 | PostgreSQL driver |
+| golang.org/x/crypto | v0.47.0 | POC-002.0 | bcrypt password hashing |
+| gopkg.in/yaml.v3 | v3.0.1 | POC-002.0 | YAML configuration |
 
 ### Naming
 "Bastion" is the working name. User is researching domains.
