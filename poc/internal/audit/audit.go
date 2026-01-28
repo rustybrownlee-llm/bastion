@@ -16,7 +16,7 @@ func NewLogger(db *sql.DB) *Logger {
 }
 
 func (l *Logger) Log(eventType, userID string, details map[string]interface{}, ipAddress string) {
-	var detailsJSON []byte
+	var detailsJSON interface{}
 	var err error
 
 	if details != nil {
