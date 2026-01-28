@@ -1,0 +1,17 @@
+# Binaries
+poc/bastion
+platform/bastion
+
+# OS files
+.DS_Store
+*/.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test coverage
+*.out
+coverage.html
