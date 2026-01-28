@@ -23,11 +23,12 @@ This directory contains up-to-date reference documentation for the Bastion manag
 |-----|-------------|--------|
 | POC-001.0 | Basic Go structure | Complete |
 | POC-002.0 | Core authentication | Complete |
-| POC-003 | Basic RBAC | Not started |
+| POC-003.0 | Basic RBAC | Complete |
 | POC-004 | Service accounts / API keys | Not started |
 
-### Implemented Features (POC-002.0)
+### Implemented Features
 
+**Authentication (POC-002.0)**:
 - User registration (email/password)
 - Login with JWT access tokens (15 min TTL)
 - Refresh tokens for session continuity (24h TTL)
@@ -35,14 +36,24 @@ This directory contains up-to-date reference documentation for the Bastion manag
 - Session management with revocation
 - Audit logging for all auth events
 
+**RBAC (POC-003.0)**:
+- Multi-tenancy with tenant isolation
+- Platform roles (superadmin, admin, auditor)
+- Application roles (tenant-admin, user-admin, viewer)
+- Permission-based authorization
+- Role assignment per tenant
+- Authorization check endpoint
+- RequirePermission middleware
+- JWT includes tenant context
+
 ### Not Yet Implemented
 
 - Multi-factor authentication (MFA)
 - Single sign-on (SSO) / Federation
 - Service accounts
 - API keys
-- Role-Based Access Control (RBAC)
-- Tenant isolation
+- Role inheritance
+- Permission conditions (time, IP)
 - Password reset
 - Email verification
 - Rate limiting
@@ -61,15 +72,19 @@ docker run -d --name bastion-db \
   postgres:15
 
 # 2. Apply migrations
-psql postgresql://bastion:bastion_dev@localhost/bastion_poc \
+docker exec -i bastion-db psql -U bastion -d bastion_poc \
   < poc/migrations/001_initial_schema.sql
+docker exec -i bastion-db psql -U bastion -d bastion_poc \
+  < poc/migrations/002_rbac_schema.sql
 
-# 3. Run the server
+# 3. Run the server (port 8081)
 cd poc && go run ./cmd/bastion -config config.yaml
 
 # 4. Test
-curl http://localhost:8080/health
+curl http://localhost:8081/health
 ```
+
+**Default Admin**: `admin@bastion.local` / `BastionAdmin2025` (platform:superadmin)
 
 See [Validation Guide](validation.md) for complete testing instructions.
 

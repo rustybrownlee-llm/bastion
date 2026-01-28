@@ -94,6 +94,7 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 | DD-001 | Comprehensive architecture decision document |
 | POC-001.0 | Basic Go structure - **APPROVED AND IMPLEMENTED** |
 | POC-002.0 | Core Authentication - **APPROVED AND IMPLEMENTED** |
+| POC-003.0 | Basic RBAC - **APPROVED AND IMPLEMENTED** |
 | SOW Agent | `.claude/agents/sow-implementation-agent.md` created |
 | Reference Docs | `docs/reference/` with API, schema, config, validation guides |
 
@@ -111,7 +112,20 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 - Session tracking with activity timestamps
 - Basic audit logging to database
 - Token validation middleware
-- All 8 success criteria ready for validation
+- All 8 success criteria validated
+
+### POC-003.0 Implementation (Complete)
+- Multi-tenancy with tenant table and user assignment
+- Platform roles (superadmin, admin, auditor)
+- Application roles (tenant-admin, user-admin, viewer)
+- Permissions table (resource_type + action)
+- Role-permission mappings
+- User-role assignments per tenant
+- Authorization check endpoint (`/api/v1/authz/check`)
+- RequirePermission middleware
+- JWT claims include tenant_id
+- Bootstrap: admin@bastion.local is platform:superadmin
+- All 12 success criteria validated
 
 ### SOW Implementation Agent
 
@@ -127,9 +141,9 @@ The agent enforces:
 
 ## Next Steps
 
-1. **Validate POC-002.0** - Start PostgreSQL, apply migrations, run tests (see `docs/reference/validation.md`)
-2. **Draft POC-003** - Basic RBAC (roles, permissions, resource types)
-3. **Draft POC-004** - Service accounts and API keys
+1. **Draft POC-004** - Service accounts and API keys
+2. **Production planning** - Evaluate POC lessons learned, plan SOW-100+ series
+3. **Optional**: Bootstrap UI for testing (separate SOW)
 
 ---
 
@@ -174,6 +188,25 @@ PostgreSQL, same as Signal Smith. No ORM - use database/sql directly.
 To continue this work:
 1. Read CLAUDE.md for project rules
 2. Read this HANDOFF.md for current state
-3. Review POC-002.0 SOW (not yet committed, exists locally)
-4. Get explicit approval before implementing
+3. Review completed SOWs in `docs/sows/` for context
+4. Get explicit approval before implementing any new SOW
 5. Use the SOW implementation agent for execution
+
+### Running the POC
+
+```bash
+# Start PostgreSQL
+docker start bastion-db  # or create new container
+
+# Apply all migrations
+docker exec -i bastion-db psql -U bastion -d bastion_poc < poc/migrations/001_initial_schema.sql
+docker exec -i bastion-db psql -U bastion -d bastion_poc < poc/migrations/002_rbac_schema.sql
+
+# Run server (port 8081)
+cd poc && go run ./cmd/bastion -config config.yaml
+```
+
+### Test Admin User
+- Email: `admin@bastion.local`
+- Password: `BastionAdmin2025`
+- Role: `platform:superadmin`
