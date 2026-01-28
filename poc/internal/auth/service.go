@@ -20,10 +20,11 @@ func NewService(db *sql.DB, cfg *config.AuthConfig) *Service {
 
 func (s *Service) Login(email, password string) (string, string, error) {
 	var userID, passwordHash string
+	var tenantID *string
 	err := s.db.QueryRow(
-		"SELECT id, password_hash FROM users WHERE email = $1",
+		"SELECT id, password_hash, tenant_id FROM users WHERE email = $1",
 		email,
-	).Scan(&userID, &passwordHash)
+	).Scan(&userID, &passwordHash, &tenantID)
 
 	if err == sql.ErrNoRows {
 		return "", "", fmt.Errorf("invalid credentials")
@@ -56,7 +57,7 @@ func (s *Service) Login(email, password string) (string, string, error) {
 		return "", "", fmt.Errorf("create session: %w", err)
 	}
 
-	accessToken, err := GenerateAccessToken(s.cfg, userID, email)
+	accessToken, err := GenerateAccessToken(s.cfg, userID, email, tenantID)
 	if err != nil {
 		return "", "", fmt.Errorf("generate access token: %w", err)
 	}
@@ -66,7 +67,7 @@ func (s *Service) Login(email, password string) (string, string, error) {
 
 func (s *Service) Refresh(refreshToken string) (string, error) {
 	rows, err := s.db.Query(
-		`SELECT s.id, s.user_id, s.refresh_token_hash, u.email
+		`SELECT s.id, s.user_id, s.refresh_token_hash, u.email, u.tenant_id
 		 FROM sessions s
 		 JOIN users u ON u.id = s.user_id
 		 WHERE s.revoked = FALSE AND s.expires_at > NOW()`,
@@ -78,7 +79,8 @@ func (s *Service) Refresh(refreshToken string) (string, error) {
 
 	for rows.Next() {
 		var sessionID, userID, hash, email string
-		if err := rows.Scan(&sessionID, &userID, &hash, &email); err != nil {
+		var tenantID *string
+		if err := rows.Scan(&sessionID, &userID, &hash, &email, &tenantID); err != nil {
 			continue
 		}
 
@@ -91,7 +93,7 @@ func (s *Service) Refresh(refreshToken string) (string, error) {
 				return "", fmt.Errorf("update session: %w", err)
 			}
 
-			accessToken, err := GenerateAccessToken(s.cfg, userID, email)
+			accessToken, err := GenerateAccessToken(s.cfg, userID, email, tenantID)
 			if err != nil {
 				return "", fmt.Errorf("generate access token: %w", err)
 			}

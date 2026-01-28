@@ -21,8 +21,9 @@ func NewHandler(service *Service, audit *audit.Logger) *Handler {
 }
 
 type CreateUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string  `json:"email"`
+	Password string  `json:"password"`
+	TenantID *string `json:"tenant_id,omitempty"`
 }
 
 type ErrorResponse struct {
@@ -36,7 +37,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.CreateUser(req.Email, req.Password)
+	user, err := h.service.CreateUser(req.Email, req.Password, req.TenantID)
 	if err != nil {
 		h.audit.Log("user_creation_failure", "", map[string]interface{}{
 			"email": req.Email,
