@@ -95,6 +95,7 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 | POC-001.0 | Basic Go structure - **APPROVED AND IMPLEMENTED** |
 | POC-002.0 | Core Authentication - **APPROVED AND IMPLEMENTED** |
 | POC-003.0 | Basic RBAC - **APPROVED AND IMPLEMENTED** |
+| POC-004.0 | Service Accounts and API Keys - **APPROVED AND IMPLEMENTED** |
 | SOW Agent | `.claude/agents/sow-implementation-agent.md` created |
 | Reference Docs | `docs/reference/` with API, schema, config, validation guides |
 
@@ -127,6 +128,17 @@ All three share the same technology stack: Go, PostgreSQL, chi router, YAML conf
 - Bootstrap: admin@bastion.local is platform:superadmin
 - All 12 success criteria validated
 
+### POC-004.0 Implementation (Complete)
+- Service accounts with OAuth2 client credentials flow
+- API keys with X-API-Key header authentication
+- Service accounts use role-based RBAC (same as users)
+- API keys use direct permission grants (simpler model)
+- JWT claims include identity_type (user/service_account)
+- Secret regeneration for service accounts
+- Optional expiration for API keys
+- All secrets bcrypt hashed, shown only once
+- All 12 success criteria validated
+
 ### SOW Implementation Agent
 
 A custom agent was created at `.claude/agents/sow-implementation-agent.md` for implementing approved SOWs.
@@ -141,9 +153,13 @@ The agent enforces:
 
 ## Next Steps
 
-1. **Draft POC-004** - Service accounts and API keys
+1. **POC Complete** - All core identity types implemented (users, service accounts, API keys)
 2. **Production planning** - Evaluate POC lessons learned, plan SOW-100+ series
-3. **Optional**: Bootstrap UI for testing (separate SOW)
+3. **Optional enhancements**:
+   - Bootstrap UI for testing
+   - Role inheritance
+   - Permission conditions (time, IP)
+   - Rate limiting for API keys
 
 ---
 

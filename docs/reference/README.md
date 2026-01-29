@@ -24,7 +24,7 @@ This directory contains up-to-date reference documentation for the Bastion manag
 | POC-001.0 | Basic Go structure | Complete |
 | POC-002.0 | Core authentication | Complete |
 | POC-003.0 | Basic RBAC | Complete |
-| POC-004 | Service accounts / API keys | Not started |
+| POC-004.0 | Service accounts / API keys | Complete |
 
 ### Implemented Features
 
@@ -46,17 +46,24 @@ This directory contains up-to-date reference documentation for the Bastion manag
 - RequirePermission middleware
 - JWT includes tenant context
 
+**Non-Human Identities (POC-004.0)**:
+- Service accounts with OAuth2 client credentials
+- API keys with X-API-Key header auth
+- Service accounts use role-based RBAC
+- API keys use direct permission grants
+- Secret regeneration for service accounts
+- Optional expiration for API keys
+
 ### Not Yet Implemented
 
 - Multi-factor authentication (MFA)
 - Single sign-on (SSO) / Federation
-- Service accounts
-- API keys
 - Role inheritance
 - Permission conditions (time, IP)
 - Password reset
 - Email verification
 - Rate limiting
+- API key IP restrictions
 
 ---
 
@@ -76,6 +83,8 @@ docker exec -i bastion-db psql -U bastion -d bastion_poc \
   < poc/migrations/001_initial_schema.sql
 docker exec -i bastion-db psql -U bastion -d bastion_poc \
   < poc/migrations/002_rbac_schema.sql
+docker exec -i bastion-db psql -U bastion -d bastion_poc \
+  < poc/migrations/003_service_accounts_api_keys.sql
 
 # 3. Run the server (port 8081)
 cd poc && go run ./cmd/bastion -config config.yaml
