@@ -11,18 +11,21 @@ import (
 )
 
 type Claims struct {
-	UserID   string  `json:"sub"`
-	Email    string  `json:"email"`
-	TenantID *string `json:"tenant_id,omitempty"`
+	UserID       string  `json:"sub"`
+	Email        string  `json:"email,omitempty"`
+	IdentityType string  `json:"identity_type,omitempty"`
+	Name         string  `json:"name,omitempty"`
+	TenantID     *string `json:"tenant_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
 func GenerateAccessToken(cfg *config.AuthConfig, userID, email string, tenantID *string) (string, error) {
 	now := time.Now()
 	claims := &Claims{
-		UserID:   userID,
-		Email:    email,
-		TenantID: tenantID,
+		UserID:       userID,
+		Email:        email,
+		IdentityType: "user",
+		TenantID:     tenantID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(cfg.AccessTokenTTL)),

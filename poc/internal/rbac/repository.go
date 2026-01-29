@@ -258,3 +258,21 @@ func (r *Repository) HasPermission(userID string, tenantID *string, resourceType
 
 	return count > 0, nil
 }
+
+func (r *Repository) HasAPIKeyPermission(apiKeyID, resourceType, action string) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(*)
+		FROM permissions p
+		JOIN api_key_permissions akp ON p.id = akp.permission_id
+		WHERE akp.api_key_id = $1
+		AND p.resource_type = $2
+		AND p.action = $3`
+
+	err := r.db.QueryRow(query, apiKeyID, resourceType, action).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("check api key permission: %w", err)
+	}
+
+	return count > 0, nil
+}

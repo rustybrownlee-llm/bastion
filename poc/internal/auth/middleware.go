@@ -11,6 +11,11 @@ import (
 func RequireAuth(cfg *config.AuthConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Context().Value("apikey") != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
 				writeError(w, "missing authorization header", http.StatusUnauthorized)

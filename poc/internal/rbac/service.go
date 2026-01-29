@@ -126,3 +126,22 @@ func (s *Service) GetUserRoles(userID string, tenantID *string) ([]*UserRole, er
 
 	return s.repo.GetUserRoles(userID, tenantID)
 }
+
+func (s *Service) CheckAPIKeyPermission(apiKeyID, resourceType, action string) (bool, error) {
+	if apiKeyID == "" {
+		return false, fmt.Errorf("api key ID required")
+	}
+
+	allowed, err := s.repo.HasAPIKeyPermission(apiKeyID, resourceType, action)
+	if err != nil {
+		return false, err
+	}
+
+	s.auditLogger.Log("authz.api_key_check", apiKeyID, map[string]interface{}{
+		"resource_type": resourceType,
+		"action":        action,
+		"allowed":       allowed,
+	}, "")
+
+	return allowed, nil
+}
